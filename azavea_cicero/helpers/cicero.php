@@ -36,7 +36,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
         /**
          * Get token from Cicero SOAP API using email and password stored in
          * config table.
-		 * Used by the Cicero Live block.
+         * Used by the Cicero Live block.
          *
          * @return string token
          */        
@@ -79,7 +79,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
         
         /**
          * Gets a PHP object created from JSON (or returns False).
-		 * Used by the Cicero Elections block.
+	 * Used by the Cicero Elections block.
          *
          * @param string $url API endpoint
          * @param string $postfields 
@@ -101,7 +101,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
         /**
          * Returns a PHP response object after trying to authenticate via the
          * Cicero REST service.
-		 * This authentication method is used by the Cicero Elections block.
+	 * This authentication method is used by the Cicero Elections block.
          *
          * @return object PHP object converted from JSON response
          */
