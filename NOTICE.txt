@@ -1,0 +1,57 @@
+The Azavea Cicero Package for Concrete5 CMS
+
+Copyright (C) 2010-2012 Azavea, Inc.
+
+
+LICENSE
+
+The Azavea Cicero Package for Concrete5 CMS (henceforth "Cicero for 
+Concrete5") is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this program except in compliance with the License.
+
+You may obtain a copy of the License at:  
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+
+ATTRIBUTION 
+
+Section 4.3 of the LICENSE requires retention of all copyright, patent, 
+trademark, and attribution notices. Note that attribution notices include all 
+code sections clearly labeled "ATTRIBUTION NOTICE".
+
+
+ACKNOWLEDGEMENTS
+
+Cicero for Concrete5 is developed by Azavea (www.azavea.com), and is intended 
+to be used with the Cicero Elected-official Lookup API (www.azavea.com/cicero/).
+
+Lead Developers:
+
+   Joe Tricarico, Andrew Jennings
+
+Design and oversight:
+
+   Abby Fretz, Mike Tedeschi, Andrew Thompson
+
+
+OBTAINING THIS SOFTWARE
+
+Source code for Cicero for Concrete5 may be obtained at
+http://github.com/azavea/cicero-for-concrete5
+
+
+INCLUDED WORKS
+
+Cicero for Concrete5 includes works under other copyright notices and distributed 
+according to the terms of the Apache License, v.2 or a compatible license, 
+including portions of:
+
+Trimpath Template, Copyright 2004-2005 Metaha.
+
+NO WARRANTIES
+
+Unless required by applicable law or agreed to in writing, software distributed 
+under the License is distributed on an "AS IS" BASIS,  WITHOUT WARRANTIES OR 
+CONDITIONS OF ANY KIND, either express or implied.  See the License for the 
+specific language governing permissions and  limitations under the License.

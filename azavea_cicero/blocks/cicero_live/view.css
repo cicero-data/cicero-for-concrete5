@@ -1,0 +1,264 @@
+/* Copyright 2010-2012 Azavea, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+#map {
+    width:100%;
+    min-height:400px;
+    position:relative;
+}
+#map-overlay{
+    background:black;
+    height:100%;
+    width:100%;
+    position:absolute;
+    z-index:31;
+    cursor:wait;
+}
+#map-overlay img{
+    position:absolute;
+    top:50%;
+    left:50%;
+    margin-top:-32px;
+    margin-left:-32px;  
+}
+#address-input {
+    width:590px;
+}
+.hidden-link {
+    display:none;
+}
+.geocode-result {
+    cursor:pointer;
+}
+#country-selector input[type="button"].selected-country {
+    background-color:orange;
+}
+#map-column {
+    margin-left: 440px;
+    position: relative;
+}
+#officials-content { 
+    float:left;
+    margin-left:-100%;
+    width: 420px;
+}
+.capitalize {
+    text-transform: capitalize;
+}
+#map-container{
+    float:left;
+    width:100%;
+}
+.elected-official, .picker-node{
+    cursor:pointer;
+    padding: 3px 25px 3px 25px;
+    margin-left: -30px;
+    width: 375px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.elected-official:nth-child(even), .picker-node:nth-child(even){
+    background: #EEE;
+}
+.waiting{
+    cursor:wait;
+}
+.still-waiting{
+    cursor:progress;
+}
+
+.elected-official.selected-official,
+.picker-node.selected-official {
+	background: #F5D379 !important;
+}
+
+/* ------------------------------
+   CONTENT AREA PAGE TYPE STYLING 
+   ------------------------------ */
+
+#address-content {
+    background: #E2E4E5;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7F7F7', endColorstr='#E2E4E5');
+        background: -webkit-gradient(linear, left top, left bottom, from(#F7F7F7), to(#E2E4E5));
+        background: -moz-linear-gradient(top, #F7F7F7, #E2E4E5);
+    -moz-box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    -webkit-box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    width: 900px;
+    height: auto;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+}
+#address-content label {
+    font-family: 'Francois One', 'Arial Narrow', Arial, sans-serif;
+    font-size: 12pt;
+    color: #00375A;
+    margin-right: 15px;
+	margin-top: 8px;
+	float: left;
+}
+#address-content input#address-input {
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    border: 1pt solid #CCC;
+    padding: 8px;
+    margin-right: 15px;
+}
+#address-content input#geocode-button {
+    font-family: 'Francois One', 'Arial Narrow', Arial, sans-serif;
+    font-size: 12pt;
+    background: #EFCD71;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7D780', endColorstr='#E0B438');
+        background: -webkit-gradient(linear, left top, left bottom, from(#F7D780), to(#E0B438));
+        background: -moz-linear-gradient(top, #F7D780, #E0B438);
+    border: none;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    padding: 3px 20px 4px;
+    color: #FFF;
+    position: relative;
+    top: 2px;
+    cursor: pointer;
+}
+#address-content input#geocode-button:hover {
+    -moz-box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    -webkit-box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    box-shadow: 0 2px 3px rgba(0,0,0,.4);
+}
+
+#address-content #address-permalink, 
+#address-content #locations {
+    margin-left: 180px;
+}
+
+#address-content #locations {
+    margin-top: 10px;
+    color: #666;
+}
+#address-content #address-candidates-note {
+	display: none;
+	float: left;
+	margin-top: 10px;
+	font-style: italic;
+}
+
+
+#map-container #country-selector {
+    position: absolute;
+    right: 15px;
+    top: 12px;
+    z-index: 999;
+}
+#map-container #country-selector input {
+    background: #075975;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#235F84', endColorstr='#00375A');
+        background: -webkit-gradient(linear, left top, left bottom, from(#235F84), to(#00375A));
+        background: -moz-linear-gradient(top, #235F84, #00375A);
+    border: none;
+    border-radius: 6px;
+    -moz-border-radius: 6px;
+    color: #FFF;
+    cursor: pointer;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 2px;
+}
+#map-container #country-selector input.selected-country {
+    background: #EFCD71;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7D780', endColorstr='#E0B438');
+        background: -webkit-gradient(linear, left top, left bottom, from(#F7D780), to(#E0B438));
+        background: -moz-linear-gradient(top, #F7D780, #E0B438);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,.4);
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.4);
+    box-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+
+#map-container #official-info-container {
+    background-color:white;
+    margin-top: 15px;
+    float: left;
+	width: 520px;
+	margin-bottom: 10px;
+}
+#map-container #official-info {
+    border: 1pt solid #CCC;
+    width: 488px;
+    padding: 10px 15px;
+}
+#map-container #official-info h1 {
+    color: #66879C;
+    float: left;
+    font-size: 21px;
+    margin: 0 10px 0 0;
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,.0);
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.0);
+    box-shadow: 0 1px 2px rgba(0,0,0,.0);
+}
+#map-container #official-info h2 {
+    float: left;
+    margin: 9px 0 0 15px;
+	font-size: 18px;
+}
+#map-container #official-info h3 {
+    clear: left;
+    font-size: 18px;
+    color: #53A8C8;
+    padding-bottom: 10px;
+}
+#map-container #official-info h4 {
+    color: #264B5D;
+    font-size: 10pt;
+    margin-top: 10px;
+    padding: 0;
+	clear: both;
+}
+#map-container #official-info a {
+
+}
+#map-container #official-info .half {
+    width: 50%;
+    float: left;
+    margin-bottom: 10px;
+}
+
+#officials-content h3 {
+    background: #E2E4E5;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7F7F7', endColorstr='#E2E4E5');
+        background: -webkit-gradient(linear, left top, left bottom, from(#F7F7F7), to(#E2E4E5));
+        background: -moz-linear-gradient(top, #F7F7F7, #E2E4E5);
+}
+#officials-content h3.ui-state-active {
+    background: #EFCD71;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7D780', endColorstr='#E0B438');
+        background: -webkit-gradient(linear, left top, left bottom, from(#F7D780), to(#E0B438));
+        background: -moz-linear-gradient(top, #F7D780, #E0B438);
+}
+#officials-content .officials-list,
+#officials-content .district-list {
+    margin-bottom: 10px;
+    margin-top: -11px;
+    height: auto;
+    overflow-x: hidden;
+}
+#officials-content .elected-official {
+
+}
+#officials-content .elected-official span {
+    float: right;
+    font-weight: bold;
+}
+#report-a-problem {
+	margin-top: 10px;
+}
