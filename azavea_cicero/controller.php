@@ -39,7 +39,7 @@ class AzaveaCiceroPackage extends Package {
      
      public function install() {
           $pkg = parent::install(); 
-		  BlockType::installBlockTypeFromPackage('cicero_elections', $pkg); 
+          BlockType::installBlockTypeFromPackage('cicero_elections', $pkg); 
           BlockType::installBlockTypeFromPackage('cicero_live', $pkg);
      }
 }
