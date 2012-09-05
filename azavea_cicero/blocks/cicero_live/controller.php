@@ -55,8 +55,33 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $js = Loader::helper('json');
 
             /* method in azavea_cicero/helpers/cicero.php */
-            $token = $cicero->authenticate(); 
+            //$token = $cicero->authenticate();
+            $authResponse = $cicero->authenticateViaREST();
+			if($authResponse->success === True) {
+                $params['token'] = $authResponse->token;
+                $params['user'] = $authResponse->user;
+			    $params['latitude'] = $_REQUEST['latitude'];
+			    $params['longitude'] = $_REQUEST['longitude'];
+				$params['districtType'] = 'all';
+				$params['includeAtLarge'] = true;
+				
+				$queryString = http_build_query($params);
+				$url = $cicero->url_base_rest . 'official?' . $queryString;
+				$officialResponse = $cicero->get_response($url);
+				
+				if(count($officialResponse->response->results->candidates) == 0):
+					//error_log('No location found for the given address.');
+                	print $js->encode(array('success'=>FALSE, 'message'=>'No Location found for the given address.'));
+				endif;
+				
+				$officialResult = $officialResponse->response->results->candidates->officials;
+				print $officialResult;//return $officialResult;
+				//print $js->encode($officialResult);//unsure if this is right
 
+                /*
+			
+			START OF OLD CICERO_LIVE SOAP CODE	  *
+			
             try {
                 $officials = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/ElectedOfficialQueryService.asmx?wsdl");
 
@@ -78,15 +103,40 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             } catch (Exception $e) {
                 error_log('Problem in GetElectedOfficials: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
                 print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
-            }
-            exit;
+            }END OLD CICERO_LIVE SOAP CODE */
+            } else {
+				throw new Exception('Could not authenticate Cicero REST API user.');
+            }//exit;
         }
         
         public function action_get_new_legislative_districts() {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
             $js = Loader::helper('json');
-            $token = $cicero->authenticate();
-            try {
+            //$token = $cicero->authenticate();
+			$authResponse = $cicero->authenticateViaREST();
+			if($authResponse->success === True) {
+                $params['token'] = $authResponse->token;
+                $params['user'] = $authResponse->user;
+			    $params['latitude'] = $_REQUEST['latitude'];
+			    $params['longitude'] = $_REQUEST['longitude'];
+				$params['districtType'] = 'ALL_2010';
+				
+				$queryString = http_build_query($params);
+				$url = $cicero->url_base_rest . 'legislative_district?' . $queryString;
+				$legislativeDistrictResponse = $cicero->get_response($url);
+				
+				if(count($legislativeDistrictResponse->response->results->candidates) == 0):
+					//error_log('No location found for the given address.');
+                	print $js->encode(array('success'=>FALSE, 'message'=>'No Location found for the given address.'));
+				endif;
+				
+				$legislativeDistrictResult = $legislativeDistrictResponse->response->results->candidates->officials;
+				//Since REST is already JSON, I don't need print $js->encode($legislativeDistrictResult), right?
+				print $legislativeDistrictResult;
+			} else {
+				throw new Exception('Could not authenticate Cicero REST API user.');
+			}
+            /*OLD SOAP CODE try {
                 $client = new SoapClient($cicero->url_base . "azavea.cicero.webservice.v2/GeocodingService.asmx?wsdl");
                 $param = array(
                     'authToken'=>$token,
@@ -104,41 +154,49 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
                 error_log('Problem with getting new districts: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
                 print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
             }
-            exit;
+            exit;*/
         }
 
         public function action_get_nonlegislative_districts() {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
             $js = Loader::helper('json');
-            $token = $cicero->authenticate();
+            //$token = $cicero->authenticate(); SOAP
+            $authResponse = $cicero->authenticateViaREST();
             $district_types = array('SCHOOL', 'WATERSHED', 'COUNTY', 'POLICE', 'CENSUS');
-            try {
-                $latitude = $_REQUEST['latitude'];
-                $longitude = $_REQUEST['longitude'];
-                $districts = array();
-                foreach ($district_types as $type) {
-                    $new_results = $this->get_nonlegislative_districts($token, $latitude, $longitude, $type);
-                    $districts = array_merge($districts, $new_results);
-                }
-                print $js->encode($districts);
-            } catch (Exception $e) {
-                error_log('Problem in GetNonLegislativeDistricts: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
-                print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
-            }
+			if ($authResponse->success === True) {
+				$token = $authResponse->token;
+	            try {
+	                $latitude = $_REQUEST['latitude'];
+	                $longitude = $_REQUEST['longitude'];
+	                $districts = array();
+	                foreach ($district_types as $type) {
+	                    $new_results = $this->get_nonlegislative_districts($token, $latitude, $longitude, $type);
+	                    $districts = array_merge($districts, $new_results);
+	                }
+	                print $js->encode($districts);
+	            } catch (Exception $e) {
+	                error_log('Problem in GetNonLegislativeDistricts: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
+	                print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
+	            }
+			}
             exit;
         }
 
         protected function get_nonlegislative_districts($token, $latitude, $longitude, $type) {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
-            $districts = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/NonLegislativeDistrictService.asmx?wsdl");
+            //SOAP $districts = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/NonLegislativeDistrictService.asmx?wsdl");
             $param = array(
                 'authToken'=>$token,
                 'latitude'=>$latitude,
                 'longitude'=>$longitude,
                 'districtType'=>$type
             );
-            $result = $districts->GetDistrictsByCoordinates($param);
-            $districts = $result->GetDistrictsByCoordinatesResult->NonLegDistrictInfo;
+			$queryString = http_build_query($params);
+			$url = $cicero->url_base_rest . 'nonlegislative_district?' . $queryString;
+			$result = $cicero->get_response($url);
+			$districts = $result->results->candidates->districts;
+            //SOAP $result = $districts->GetDistrictsByCoordinates($param);
+            //SOAP $districts = $result->GetDistrictsByCoordinatesResult->NonLegDistrictInfo;
             if (is_array($districts)) {
                 return $districts;
             } else {
@@ -150,18 +208,19 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $cicero = Loader::helper('cicero', 'azavea_cicero');
             $js = Loader::helper('json');
 
-            $token = $cicero->authenticate();
-            $client = new SoapClient($cicero->url_base . "/azavea.cicero.webservice.v2/MapGenerationService.asmx?wsdl");
-			
+            //SOAP $token = $cicero->authenticate();
+            //SOAP $client = new SoapClient($cicero->url_base . "/azavea.cicero.webservice.v2/MapGenerationService.asmx?wsdl");
+            $authResponse = $cicero->authenticateViaREST();
+			if ($authResponse->success === True) {
 			$mapExtentUS = array(
                 "MinX"=>-171.5625,
 				"MaxX"=>-66.884766,
 				"MinY"=>24.4415,
 				"MaxY"=>71.746432,
-				"MinXMeters"=>0, // these dont really do anything but the SOAP
+			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
 				"MaxXMeters"=>0, // API will get mad if they're not here
 				"MinYMeters"=>0,
-				"MaxYMeters"=>0
+				"MaxYMeters"=>0 */
             );
 			
 			$mapExtentAK = array(
@@ -169,10 +228,10 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				"MaxX"=>-129.9,
 				"MinY"=>50,
 				"MaxY"=>71.8,
-				"MinXMeters"=>0, // these dont really do anything but the SOAP
+			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
 				"MaxXMeters"=>0, // API will get mad if they're not here
 				"MinYMeters"=>0,
-				"MaxYMeters"=>0
+				"MaxYMeters"=>0 */
             );
 				
             $imageSpec = array(
@@ -188,7 +247,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             );
 			
 			$param = array(
-                'authToken'=>$token,
+                'authToken'=>$authResponse->token,
                 'districtID'=>$_REQUEST['districtID'],
                 'city'=>$_REQUEST['city'],
                 'state'=>$_REQUEST['state'],
@@ -215,8 +274,13 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			} else {
 				$method = 'GetMapByDistrictID';
 			}
-        
-            try {
+			
+			$queryString = http_build_query($params);
+			$url = $cicero->url_base_rest . 'map?' . $queryString;
+			$result = $cicero->get_response($url);
+			print $js->encode($result);//probably wrong
+			
+          /*  try {
                 $result = $client->$method($param);
                 $map_result = $result->{$method.'Result'};
                 print $js->encode($map_result);
@@ -225,6 +289,9 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
                 error_log('Problem getting map: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
             }
             exit;
-        }
+        } */
+	} else {
+		throw new Exception("Could not authenticate Cicero REST API user.");
+	}
 	}
 ?>

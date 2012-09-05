@@ -28,11 +28,11 @@ to be used with the Cicero Elected-official Lookup API (www.azavea.com/cicero/).
 
 Lead Developers:
 
-   Joe Tricarico, Andrew Jennings
+   Joe Tricarico, Andrew Jennings, Andrew Thompson
 
 Design and oversight:
 
-   Abby Fretz, Mike Tedeschi, Andrew Thompson
+   Abby Fretz, Mike Tedeschi
 
 
 OBTAINING THIS SOFTWARE
