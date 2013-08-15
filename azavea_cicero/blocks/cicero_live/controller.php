@@ -66,51 +66,21 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
                 $params['user'] = $authResponse->user;
 			    $params['lat'] = $_REQUEST['latitude'];
 			    $params['lon'] = $_REQUEST['longitude'];
-				//$params['district_type'] = 'all';
-				//$params['includeAtLarge'] = True;
 				
 				$queryString = http_build_query($params);
 				$url = $cicero->url_base_rest . 'official?' . $queryString;
 				$officialResponse = $cicero->get_response($url);
 				
 				if($officialResponse->response->results->count->total) == 0) {
-					//error_log('No location found for the given address.');
                 	print $js->encode(array('success'=>FALSE, 'message'=>'No officials found for the given location.'));
                 }
 				
 				$officialResult = $officialResponse->response->results->officials;
-				//print $officialResult;//return $officialResult;
 				print $js->encode($officialResult);//this is probably right.
 
-                /*
-			
-			START OF OLD CICERO_LIVE SOAP CODE	  *
-			
-            try {
-                $officials = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/ElectedOfficialQueryService.asmx?wsdl");
-
-                if (is_null($_REQUEST['latitude'])) {
-                    header("HTTP/1.0 400 Bad Request");
-					exit;
-                }
-
-                $param = array(
-                    'authToken'=>$token,
-                    'latitude'=>$_REQUEST['latitude'],
-                    'longitude'=>$_REQUEST['longitude'],
-                    'districtType'=>'all',
-                    'includeAtLarge'=>true
-                );
-                $result = $officials->GetOfficialsByCoordinates($param);
-                $officials = $result->GetOfficialsByCoordinatesResult;
-                print $js->encode($officials);
-            } catch (Exception $e) {
-                error_log('Problem in GetElectedOfficials: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
-                print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
-            }END OLD CICERO_LIVE SOAP CODE */
-            } else {
+           } else {
 				throw new Exception('Could not authenticate Cicero REST API user.');
-            }//exit;
+            }
         }
 ////////////////////// Not sure this needs to be new districts anymore
         public function action_get_new_legislative_districts() {
@@ -141,26 +111,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			} else {
 				throw new Exception('Could not authenticate Cicero REST API user.');
 			}
-            /*OLD SOAP CODE try {
-                $client = new SoapClient($cicero->url_base . "azavea.cicero.webservice.v2/GeocodingService.asmx?wsdl");
-                $param = array(
-                    'authToken'=>$token,
-                    'latitude'=>$_REQUEST['latitude'],
-                    'longitude'=>$_REQUEST['longitude'],
-                    'districtType'=>'ALL_2010'
-                );
-                $result = $client->GetDistrictsByCoordinates($param);
-                $districts = $result->GetDistrictsByCoordinatesResult->DistrictInfo;
-                if (!is_array($districts)) {
-                    $districts = array($districts);
-                }                
-                print $js->encode($districts);
-            } catch (Exception $e) {
-                error_log('Problem with getting new districts: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
-                print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
-            }
-            exit;*/
-        }
+       }
 
         public function action_get_nonlegislative_districts() {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
@@ -189,7 +140,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 
         protected function get_nonlegislative_districts($token, $latitude, $longitude, $type) {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
-            //SOAP $districts = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/NonLegislativeDistrictService.asmx?wsdl");
             $param = array(
                 'authToken'=>$token,
                 'lat'=>$latitude,
@@ -201,8 +151,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			$result = $cicero->get_response($url);
 			$districts = $result->results->candidates->districts;
             // TODO: Make error handling make sense here.
-            //SOAP $result = $districts->GetDistrictsByCoordinates($param);
-            //SOAP $districts = $result->GetDistrictsByCoordinatesResult->NonLegDistrictInfo;
             if (is_array($districts)) {
                 return $districts;
             } else {
@@ -214,8 +162,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $cicero = Loader::helper('cicero', 'azavea_cicero');
             $js = Loader::helper('json');
 
-            //SOAP $token = $cicero->authenticate();
-            //SOAP $client = new SoapClient($cicero->url_base . "/azavea.cicero.webservice.v2/MapGenerationService.asmx?wsdl");
             $authResponse = $cicero->authenticateViaREST();
 			if ($authResponse->success === True) {
 			$mapExtentUS = array(
@@ -223,10 +169,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				"x_max"=>-66.884766,
 				"y_min"=>24.4415,
 				"y_max"=>71.746432,
-			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
-				"MaxXMeters"=>0, // API will get mad if they're not here
-				"MinYMeters"=>0,
-				"MaxYMeters"=>0 */
             );
 			
 			$mapExtentAK = array(
@@ -234,10 +176,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				"x_max"=>-129.9,
 				"y_min"=>50,
 				"y_max"=>71.8,
-			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
-				"MaxXMeters"=>0, // API will get mad if they're not here
-				"MinYMeters"=>0,
-				"MaxYMeters"=>0 */
             );
 				
             $imageSpec = array(
@@ -265,7 +203,6 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 
 			if( $_REQUEST['districtID'] == 'United States' ) {
 				$param = array_merge($param, $mapExtentUS);
-				//$method = 'GetMapByExtent';
 			} elseif (
 				(	
 					$_REQUEST['districtID'] == 'AK' &&
@@ -278,9 +215,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			{
 				$param = array_merge($param, $mapExtentAK);
 				//$param['map_extent'] = $mapExtentAK;
-				//$method = 'GetMapByExtent';
 			} else {
-				//$method = 'GetMapByDistrictID';
 			}
 			
 			$queryString = http_build_query($params);
