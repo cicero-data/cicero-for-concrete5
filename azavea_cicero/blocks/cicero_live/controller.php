@@ -71,7 +71,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				$url = $cicero->url_base_rest . 'official?' . $queryString;
 				$officialResponse = $cicero->get_response($url);
 				
-				if($officialResponse->response->results->count->total) == 0) {
+				if($officialResponse->response->results->count->total == 0) {
                 	print $js->encode(array('success'=>FALSE, 'message'=>'No officials found for the given location.'));
                 }
 				
@@ -101,7 +101,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				$url = $cicero->url_base_rest . 'legislative_district?' . $queryString;
 				$legislativeDistrictResponse = $cicero->get_response($url);
 				
-				if($legislativeDistrictResponse->response->results->count->total) == 0):
+				if($legislativeDistrictResponse->response->results->count->total == 0):
 					//error_log('No location found for the given address.');
                 	print $js->encode(array('success'=>FALSE, 'message'=>'No districts found for the given location.'));
 				endif;
@@ -198,7 +198,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
                 'country'=>$_REQUEST['country'],
                 'district_type'=>$_REQUEST['districtType'],
             );
-            $param = array_merge($param, $imageSpec)
+            $param = array_merge($param, $imageSpec);
             //$param['image_spec'] = $imageSpec
 
 			if( $_REQUEST['districtID'] == 'United States' ) {
@@ -223,18 +223,9 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			$result = $cicero->get_response($url);
 			print $js->encode($result);
 			
-          /*  try {
-                $result = $client->$method($param);
-                $map_result = $result->{$method.'Result'};
-                print $js->encode($map_result);
-            } catch (SoapFault $e) {
-                print "message: " + $e->getMessage();
-                error_log('Problem getting map: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
-            }
-            exit;
-        } */
-	} else {
-		throw new Exception("Could not authenticate Cicero REST API user.");
-	}
-	}
+        } else {
+            throw new Exception("Could not authenticate Cicero REST API user.");
+        }
+	    }
+    }
 ?>
