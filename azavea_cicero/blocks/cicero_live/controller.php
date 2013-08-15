@@ -57,26 +57,30 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             /* method in azavea_cicero/helpers/cicero.php */
             //$token = $cicero->authenticate();
             $authResponse = $cicero->authenticateViaREST();
-			if($authResponse->success === True) {
+			if (is_null($_REQUEST['latitude'])) {
+                    header("HTTP/1.0 400 Bad Request");
+					exit;
+            }
+            if($authResponse->success === True) {
                 $params['token'] = $authResponse->token;
                 $params['user'] = $authResponse->user;
-			    $params['latitude'] = $_REQUEST['latitude'];
-			    $params['longitude'] = $_REQUEST['longitude'];
-				$params['districtType'] = 'all';
-				$params['includeAtLarge'] = true;
+			    $params['lat'] = $_REQUEST['latitude'];
+			    $params['lon'] = $_REQUEST['longitude'];
+				//$params['district_type'] = 'all';
+				//$params['includeAtLarge'] = True;
 				
 				$queryString = http_build_query($params);
 				$url = $cicero->url_base_rest . 'official?' . $queryString;
 				$officialResponse = $cicero->get_response($url);
 				
-				if(count($officialResponse->response->results->candidates) == 0):
+				if($officialResponse->response->results->count->total) == 0) {
 					//error_log('No location found for the given address.');
-                	print $js->encode(array('success'=>FALSE, 'message'=>'No Location found for the given address.'));
-				endif;
+                	print $js->encode(array('success'=>FALSE, 'message'=>'No officials found for the given location.'));
+                }
 				
-				$officialResult = $officialResponse->response->results->candidates->officials;
-				print $officialResult;//return $officialResult;
-				//print $js->encode($officialResult);//unsure if this is right
+				$officialResult = $officialResponse->response->results->officials;
+				//print $officialResult;//return $officialResult;
+				print $js->encode($officialResult);//this is probably right.
 
                 /*
 			
@@ -108,7 +112,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				throw new Exception('Could not authenticate Cicero REST API user.');
             }//exit;
         }
-        
+////////////////////// Not sure this needs to be new districts anymore
         public function action_get_new_legislative_districts() {
             $cicero = Loader::helper('cicero', 'azavea_cicero');
             $js = Loader::helper('json');
@@ -117,22 +121,23 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 			if($authResponse->success === True) {
                 $params['token'] = $authResponse->token;
                 $params['user'] = $authResponse->user;
-			    $params['latitude'] = $_REQUEST['latitude'];
-			    $params['longitude'] = $_REQUEST['longitude'];
-				$params['districtType'] = 'ALL_2010';
+			    $params['lat'] = $_REQUEST['latitude'];
+                $params['lon'] = $_REQUEST['longitude'];
+                // If all 2010 districts have gone into effect, omit this
+                // next parameter.
+				$params['district_type'] = 'ALL_2010';
 				
 				$queryString = http_build_query($params);
 				$url = $cicero->url_base_rest . 'legislative_district?' . $queryString;
 				$legislativeDistrictResponse = $cicero->get_response($url);
 				
-				if(count($legislativeDistrictResponse->response->results->candidates) == 0):
+				if($legislativeDistrictResponse->response->results->count->total) == 0):
 					//error_log('No location found for the given address.');
-                	print $js->encode(array('success'=>FALSE, 'message'=>'No Location found for the given address.'));
+                	print $js->encode(array('success'=>FALSE, 'message'=>'No districts found for the given location.'));
 				endif;
 				
 				$legislativeDistrictResult = $legislativeDistrictResponse->response->results->candidates->officials;
-				//Since REST is already JSON, I don't need print $js->encode($legislativeDistrictResult), right?
-				print $legislativeDistrictResult;
+				print $js->encode($legislativeDistrictResult);
 			} else {
 				throw new Exception('Could not authenticate Cicero REST API user.');
 			}
@@ -175,7 +180,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 	                }
 	                print $js->encode($districts);
 	            } catch (Exception $e) {
-	                error_log('Problem in GetNonLegislativeDistricts: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
+	                error_log('Problem in getting nonlegislative_district: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
 	                print $js->encode(array('success'=>FALSE, 'message'=>$e->getMessage()));
 	            }
 			}
@@ -187,14 +192,15 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             //SOAP $districts = new SoapClient ($cicero->url_base . "azavea.cicero.webservice.v2/NonLegislativeDistrictService.asmx?wsdl");
             $param = array(
                 'authToken'=>$token,
-                'latitude'=>$latitude,
-                'longitude'=>$longitude,
-                'districtType'=>$type
+                'lat'=>$latitude,
+                'lon'=>$longitude,
+                'district_type'=>$type
             );
 			$queryString = http_build_query($params);
 			$url = $cicero->url_base_rest . 'nonlegislative_district?' . $queryString;
 			$result = $cicero->get_response($url);
 			$districts = $result->results->candidates->districts;
+            // TODO: Make error handling make sense here.
             //SOAP $result = $districts->GetDistrictsByCoordinates($param);
             //SOAP $districts = $result->GetDistrictsByCoordinatesResult->NonLegDistrictInfo;
             if (is_array($districts)) {
@@ -213,10 +219,10 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $authResponse = $cicero->authenticateViaREST();
 			if ($authResponse->success === True) {
 			$mapExtentUS = array(
-                "MinX"=>-171.5625,
-				"MaxX"=>-66.884766,
-				"MinY"=>24.4415,
-				"MaxY"=>71.746432,
+                "x_min"=>-171.5625,
+				"x_max"=>-66.884766,
+				"y_min"=>24.4415,
+				"y_max"=>71.746432,
 			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
 				"MaxXMeters"=>0, // API will get mad if they're not here
 				"MinYMeters"=>0,
@@ -224,10 +230,10 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             );
 			
 			$mapExtentAK = array(
-                "MinX"=>-179.9999,
-				"MaxX"=>-129.9,
-				"MinY"=>50,
-				"MaxY"=>71.8,
+                "x_min"=>-179.9999,
+				"x_max"=>-129.9,
+				"y_min"=>50,
+				"y_max"=>71.8,
 			/*	"MinXMeters"=>0, // these dont really do anything but the SOAP
 				"MaxXMeters"=>0, // API will get mad if they're not here
 				"MinYMeters"=>0,
@@ -235,30 +241,31 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             );
 				
             $imageSpec = array(
-                "BoundaryColor"=>$_REQUEST['boundaryColor']?$_REQUEST['boundaryColor']:"#000000",
-                "BoundaryOpacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
-                "BoundaryWidth"=>$_REQUEST['boundaryWidth']?$_REQUEST['boundaryWidth']:"3",
-                "FillColor"=>$_REQUEST['fillColor']?$_REQUEST['fillColor']:"#53A8C8",
-                "FillOpacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"0.25",
-				"MapHeight"=>$_REQUEST['imgHeight']?$_REQUEST['imgHeight']:200, //change defaults here
-                "MapWidth"=>$_REQUEST['imgWidth']?$_REQUEST['imgWidth']:200, //change defaults here
-                "ImageFormat"=>"png",
-                "Projection"=>"EPSG:3785"
+                "boundary_color"=>$_REQUEST['boundaryColor']?$_REQUEST['boundaryColor']:"#000000",
+                "boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
+                "boundary_width"=>$_REQUEST['boundaryWidth']?$_REQUEST['boundaryWidth']:"3",
+                "fill_color"=>$_REQUEST['fillColor']?$_REQUEST['fillColor']:"#53A8C8",
+                "fill_opacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"0.25",
+				"height"=>$_REQUEST['imgHeight']?$_REQUEST['imgHeight']:200, //change defaults here
+                "width"=>$_REQUEST['imgWidth']?$_REQUEST['imgWidth']:200, //change defaults here
+                "format"=>"img",
+                "srs"=>"3785"
             );
 			
 			$param = array(
-                'authToken'=>$authResponse->token,
-                'districtID'=>$_REQUEST['districtID'],
+                'token'=>$authResponse->token,
+                'district_id'=>$_REQUEST['districtID'],
                 'city'=>$_REQUEST['city'],
                 'state'=>$_REQUEST['state'],
                 'country'=>$_REQUEST['country'],
-                'districtType'=>$_REQUEST['districtType'],
-                'imageSpec'=>$imageSpec
+                'district_type'=>$_REQUEST['districtType'],
             );
-			
+            $param = array_merge($param, $imageSpec)
+            //$param['image_spec'] = $imageSpec
+
 			if( $_REQUEST['districtID'] == 'United States' ) {
-				$param['mapExtent'] = $mapExtentUS;
-				$method = 'GetMapByExtent';
+				$param = array_merge($param, $mapExtentUS);
+				//$method = 'GetMapByExtent';
 			} elseif (
 				(	
 					$_REQUEST['districtID'] == 'AK' &&
@@ -269,16 +276,17 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 				)
 			)
 			{
-				$param['mapExtent'] = $mapExtentAK;
-				$method = 'GetMapByExtent';
+				$param = array_merge($param, $mapExtentAK);
+				//$param['map_extent'] = $mapExtentAK;
+				//$method = 'GetMapByExtent';
 			} else {
-				$method = 'GetMapByDistrictID';
+				//$method = 'GetMapByDistrictID';
 			}
 			
 			$queryString = http_build_query($params);
 			$url = $cicero->url_base_rest . 'map?' . $queryString;
 			$result = $cicero->get_response($url);
-			print $js->encode($result);//probably wrong
+			print $js->encode($result);
 			
           /*  try {
                 $result = $client->$method($param);
