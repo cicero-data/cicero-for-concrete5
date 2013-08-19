@@ -110,10 +110,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $credentials = $this->getUserNameAndPassword();
             $adminuser = $credentials['user_name'];
             $adminpass = $credentials['password'];
-            error_log("Authenticating with credentials:");
             $postbody = "username=$adminuser&password=$adminpass";
-            error_log("".$postbody);
-            error_log("At: ".$this->url_base_rest.'token/new.json');
             $response = $this->get_response($this->url_base_rest.'token/new.json', $postbody);
             return $response;
         }

@@ -52,20 +52,20 @@ class CiceroLiveBlockController extends BlockController {
     }
 
     public function action_get_elected_officials() {
-        error_log("Getting officials");
+        //error_log("Getting officials");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
 
         /* method in azavea_cicero/helpers/cicero.php */
         //$token = $cicero->authenticate();
         $authResponse = $cicero->authenticateViaREST();
-        error_log("Authentication response received.");
+        //error_log("Authentication response received.");
         if (is_null($_REQUEST['latitude'])) {
             header("HTTP/1.0 400 Bad Request");
             exit;
         }
         if($authResponse->success === True) {
-            error_log("Authentication succeeded");
+            //error_log("Authentication succeeded");
             $params['token'] = $authResponse->token;
             $params['user'] = $authResponse->user;
             $params['lat'] = $_REQUEST['latitude'];
@@ -79,7 +79,7 @@ class CiceroLiveBlockController extends BlockController {
                 error_log("No officials found for the given address.");
                 print $js->encode(array('success'=>FALSE, 'message'=>'No officials found for the given location.'));
             }
-            error_log("Printing official results");
+            //error_log("Printing official results");
 
             $officialResult = $officialResponse->response->results->officials;
             print $js->encode($officialResult);//this is probably right.
@@ -92,7 +92,7 @@ class CiceroLiveBlockController extends BlockController {
     }
     ////////////////////// Not sure this needs to be new districts anymore
     public function action_get_new_legislative_districts() {
-        error_log("Getting new districts");
+        //error_log("Getting new districts");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
         //$token = $cicero->authenticate();
@@ -124,7 +124,7 @@ class CiceroLiveBlockController extends BlockController {
     }
 
     public function action_get_nonlegislative_districts() {
-        error_log("Getting non-legislative districts.");
+        //error_log("Getting non-legislative districts.");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
         //$token = $cicero->authenticate(); SOAP
@@ -173,7 +173,7 @@ class CiceroLiveBlockController extends BlockController {
     }
 
     public function action_get_maps() {
-        error_log("Getting maps.");
+        //error_log("Getting maps.");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
 
@@ -220,7 +220,7 @@ class CiceroLiveBlockController extends BlockController {
             $param = array_merge($param, $imageSpec);
             
             $queryString = http_build_query($param);
-            error_log("Getting map with parameters ".$queryString);
+            //error_log("Getting map with parameters ".$queryString);
             $url = $cicero->url_base_rest . 'map/' . $_REQUEST['ID'] . '?' . $queryString;
             $result = $cicero->get_response($url);
             //error_log("Map query result: ".$js->encode($result));
