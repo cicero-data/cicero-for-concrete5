@@ -29,7 +29,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $this->config = $config;
 			$this->eh = Loader::helper('encryption');
             $this->url_base = 'http://cicero.azavea.com/'; # live server
-            $this->url_base_rest = 'http://cicero.azavea.com/v3.1/';
+            $this->url_base_rest = 'https://cicero.azavea.com/v3.1/';
             $this->api_user_email = 'cicero_email_username@example.com'; # for SOAP
         }
 
@@ -94,6 +94,7 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
                 curl_setopt ($ch, CURLOPT_POSTFIELDS, $postfields);
             endif;
             $json = curl_exec($ch);
+            //error_log($json);
             curl_close($ch);
             return json_decode($json);
         }
@@ -110,7 +111,8 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
             $adminuser = $credentials['user_name'];
             $adminpass = $credentials['password'];
             $postbody = "username=$adminuser&password=$adminpass";
-            return $this->get_response($this->url_base_rest.'token/new.json', $postbody);
+            $response = $this->get_response($this->url_base_rest.'token/new.json', $postbody);
+            return $response;
         }
 
         /**
