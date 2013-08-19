@@ -27,6 +27,7 @@ class CiceroLiveBlockController extends BlockController {
     protected $token_expiry = 86400; /* A day in seconds */
 
     public function on_start() {
+        error_log("CiceroLive Block starting...");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $configs = $cicero->getUserNameAndPassword();
         $this->set('user_name', $configs['user_name']);
@@ -51,17 +52,20 @@ class CiceroLiveBlockController extends BlockController {
     }
 
     public function action_get_elected_officials() {
+        error_log("Getting officials");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
 
         /* method in azavea_cicero/helpers/cicero.php */
         //$token = $cicero->authenticate();
         $authResponse = $cicero->authenticateViaREST();
+        error_log("Authentication response received.");
         if (is_null($_REQUEST['latitude'])) {
             header("HTTP/1.0 400 Bad Request");
             exit;
         }
         if($authResponse->success === True) {
+            error_log("Authentication succeeded");
             $params['token'] = $authResponse->token;
             $params['user'] = $authResponse->user;
             $params['lat'] = $_REQUEST['latitude'];
@@ -72,18 +76,23 @@ class CiceroLiveBlockController extends BlockController {
             $officialResponse = $cicero->get_response($url);
 
             if($officialResponse->response->results->count->total == 0) {
+                error_log("No officials found for the given address.");
                 print $js->encode(array('success'=>FALSE, 'message'=>'No officials found for the given location.'));
             }
+            error_log("Printing official results");
 
             $officialResult = $officialResponse->response->results->officials;
             print $js->encode($officialResult);//this is probably right.
+            exit;
 
         } else {
             throw new Exception('Could not authenticate Cicero REST API user.');
         }
+        exit;
     }
     ////////////////////// Not sure this needs to be new districts anymore
     public function action_get_new_legislative_districts() {
+        error_log("Getting new districts");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
         //$token = $cicero->authenticate();
@@ -102,18 +111,20 @@ class CiceroLiveBlockController extends BlockController {
             $legislativeDistrictResponse = $cicero->get_response($url);
 
             if($legislativeDistrictResponse->response->results->count->total == 0) {
-                //error_log('No location found for the given address.');
+                error_log('No location found for the given address.');
                 print $js->encode(array('success'=>FALSE, 'message'=>'No districts found for the given location.'));
             }
 
-            $legislativeDistrictResult = $legislativeDistrictResponse->response->results->candidates->officials;
+            $legislativeDistrictResult = $legislativeDistrictResponse->response->results->districts;
             print $js->encode($legislativeDistrictResult);
         } else {
             throw new Exception('Could not authenticate Cicero REST API user.');
         }
+        exit;
     }
 
     public function action_get_nonlegislative_districts() {
+        error_log("Getting non-legislative districts.");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
         //$token = $cicero->authenticate(); SOAP
@@ -121,14 +132,17 @@ class CiceroLiveBlockController extends BlockController {
         $district_types = array('SCHOOL', 'WATERSHED', 'COUNTY', 'POLICE', 'CENSUS');
         if ($authResponse->success === True) {
             $token = $authResponse->token;
+            $user = $authResponse->user;
             try {
                 $latitude = $_REQUEST['latitude'];
                 $longitude = $_REQUEST['longitude'];
                 $districts = array();
                 foreach ($district_types as $type) {
-                    $new_results = $this->get_nonlegislative_districts($token, $latitude, $longitude, $type);
+                    $new_results = $this->get_nonlegislative_districts($token, $user, $latitude, $longitude, $type);
+                    //error_log("Found new results ".$js->encode($new_results));
                     $districts = array_merge($districts, $new_results);
                 }
+                error_log("Found nonleg districts: ".$js->encode($districts));
                 print $js->encode($districts);
             } catch (Exception $e) {
                 error_log('Problem in getting nonlegislative_district: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
@@ -138,27 +152,28 @@ class CiceroLiveBlockController extends BlockController {
         exit;
     }
 
-    protected function get_nonlegislative_districts($token, $latitude, $longitude, $type) {
+    protected function get_nonlegislative_districts($token, $user, $latitude, $longitude, $type) {
         $cicero = Loader::helper('cicero', 'azavea_cicero');
+        $js = Loader::helper('json');
         $param = array(
-            'authToken'=>$token,
+            'user'=>$user,
+            'token'=>$token,
             'lat'=>$latitude,
             'lon'=>$longitude,
             'district_type'=>$type
         );
-        $queryString = http_build_query($params);
+        $queryString = http_build_query($param);
         $url = $cicero->url_base_rest . 'nonlegislative_district?' . $queryString;
+        //error_log("Querying for districts with query: ".$url);
         $result = $cicero->get_response($url);
-        $districts = $result->results->candidates->districts;
-        // TODO: Make error handling make sense here.
-        if (is_array($districts)) {
-            return $districts;
-        } else {
-            return array($districts);
-        }
+        $districts = $result->response->results->districts;
+
+        return $districts;
+        exit;
     }
 
     public function action_get_maps() {
+        error_log("Getting maps.");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
         $js = Loader::helper('json');
 
@@ -180,17 +195,18 @@ class CiceroLiveBlockController extends BlockController {
 
             $imageSpec = array(
                 "boundary_color"=>$_REQUEST['boundaryColor']?$_REQUEST['boundaryColor']:"#000000",
-                "boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
+                //"boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
                 "boundary_width"=>$_REQUEST['boundaryWidth']?$_REQUEST['boundaryWidth']:"3",
                 "fill_color"=>$_REQUEST['fillColor']?$_REQUEST['fillColor']:"#53A8C8",
-                "fill_opacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"0.25",
+                //"fill_opacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"0.25",
                 "height"=>$_REQUEST['imgHeight']?$_REQUEST['imgHeight']:200, //change defaults here
                 "width"=>$_REQUEST['imgWidth']?$_REQUEST['imgWidth']:200, //change defaults here
-                "format"=>"img",
+                "include_image_data"=>"true",
                 "srs"=>"3785"
             );
 
             $param = array(
+                'user'=>$authResponse->user,
                 'token'=>$authResponse->token,
                 'district_id'=>$_REQUEST['districtID'],
                 'city'=>$_REQUEST['city'],
@@ -218,14 +234,18 @@ class CiceroLiveBlockController extends BlockController {
             } else {
             }
 
-            $queryString = http_build_query($params);
+            $queryString = http_build_query($param);
+            error_log("Getting map with parameters ".$queryString);
             $url = $cicero->url_base_rest . 'map?' . $queryString;
             $result = $cicero->get_response($url);
-            print $js->encode($result);
+            //error_log("Map query result: ".$js->encode($result));
+            $map_data = $result->response->results->maps;
+            print $js->encode($map_data);
 
         } else {
             throw new Exception("Could not authenticate Cicero REST API user.");
         }
+        exit;
     }
 }
 ?>
