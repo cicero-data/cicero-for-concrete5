@@ -142,7 +142,7 @@ class CiceroLiveBlockController extends BlockController {
                     //error_log("Found new results ".$js->encode($new_results));
                     $districts = array_merge($districts, $new_results);
                 }
-                error_log("Found nonleg districts: ".$js->encode($districts));
+                //error_log("Found nonleg districts: ".$js->encode($districts));
                 print $js->encode($districts);
             } catch (Exception $e) {
                 error_log('Problem in getting nonlegislative_district: '.$e->getMessage()." using params:\n".print_r($param, TRUE));
@@ -195,6 +195,7 @@ class CiceroLiveBlockController extends BlockController {
 
             $imageSpec = array(
                 "boundary_color"=>$_REQUEST['boundaryColor']?$_REQUEST['boundaryColor']:"#000000",
+                // Opacity specifications seem to result in 500 errors.
                 //"boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
                 "boundary_width"=>$_REQUEST['boundaryWidth']?$_REQUEST['boundaryWidth']:"3",
                 "fill_color"=>$_REQUEST['fillColor']?$_REQUEST['fillColor']:"#53A8C8",
@@ -208,35 +209,19 @@ class CiceroLiveBlockController extends BlockController {
             $param = array(
                 'user'=>$authResponse->user,
                 'token'=>$authResponse->token,
-                'district_id'=>$_REQUEST['districtID'],
-                'city'=>$_REQUEST['city'],
-                'state'=>$_REQUEST['state'],
-                'country'=>$_REQUEST['country'],
-                'district_type'=>$_REQUEST['districtType'],
+                // If you put the ID as a query parameter, you'll get error
+                // 400, bad request, requiring "district_type". But if you
+                // add district_type, you'll get 404.
+                // However, adding the district ID as part of the path works
+                // (see below).
+                //'id'=>$_REQUEST['ID'], // Database ID of the district.
+                //'district_type'=>$_REQUEST['districtType'] // API Bug?
             );
             $param = array_merge($param, $imageSpec);
-            //$param['image_spec'] = $imageSpec
-
-            if( $_REQUEST['districtID'] == 'United States' ) {
-                $param = array_merge($param, $mapExtentUS);
-            } elseif (
-                (	
-                    $_REQUEST['districtID'] == 'AK' &&
-                    ( $_REQUEST['districtType'] == 'NATIONAL_LOWER' 
-                    || $_REQUEST['districtType'] == 'NATIONAL_UPPER' )
-                ) || ( 
-                    $_REQUEST['districtID'] == '19' && $_REQUEST['districtType'] == 'watershed'	//Alaska HUC2
-                )
-            )
-            {
-                $param = array_merge($param, $mapExtentAK);
-                //$param['map_extent'] = $mapExtentAK;
-            } else {
-            }
-
+            
             $queryString = http_build_query($param);
             error_log("Getting map with parameters ".$queryString);
-            $url = $cicero->url_base_rest . 'map?' . $queryString;
+            $url = $cicero->url_base_rest . 'map/' . $_REQUEST['ID'] . '?' . $queryString;
             $result = $cicero->get_response($url);
             //error_log("Map query result: ".$js->encode($result));
             $map_data = $result->response->results->maps;

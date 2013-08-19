@@ -384,10 +384,10 @@ $( function() {
 		}
 		officialNode.data('officialInfo', currentOfficial);
 		officialNode.data('mapRequest', {
-			districtID: currentOfficial.office.district.district_id,
-			city: city,
-			state: state,
-			country: currentOfficial.office.district.country,
+			ID: currentOfficial.office.district.id,
+			//city: city,
+			//state: state,
+			//country: currentOfficial.office.district.country,
 			districtType: currentOfficial.office.district.district_type,
 			imgHeight: map.height,
 			imgWidth: map.width
@@ -398,7 +398,7 @@ $( function() {
 		return appendOfficials(officials, root, header, currentType);
     };
 
-    var appendNonLegislativeDistricts = function(districts, root, headerText, fillColor) {
+    var appendNonLegislativeDistricts = function(districts, root, headerText, lat, lon, fillColor) {
         var header = $('<h3 class="official-type-root h3"><a href="#">'+ headerText +'</a></h3>');
         if(fillColor === undefined){
             fillColor = "#53A8C8";
@@ -421,10 +421,12 @@ $( function() {
 				var districtNode = $(html);
 				districtNode.data('districtInfo', this);
 				districtNode.data('mapRequest', {
-					districtID: this.district_id,
-					city: this.city,
-					state: this.state,
-					country: this.country,
+					ID: this.id,
+					//city: this.city,
+					//state: this.state,
+					//country: this.country,
+					//lat: lat,
+					//lon: lon,
 					districtType: this.district_type,
 					imgHeight: map.height,
 					imgWidth: map.width,
@@ -665,10 +667,10 @@ $( function() {
             var nonlegislativeUrl = $('#get-nonlegislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             var newDistrictURL = $('#get-new-legislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             $.getJSON(newDistrictURL, function(newDistricts) {
-                appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts');
+                appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts', location4326.y, location4326.x);
                 $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
                 $.getJSON(nonlegislativeUrl, function(nonLegDistricts) {
-                    appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts');
+                    appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts', location4326.y, location4326.x);
                     $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
                     stopWaiting();
                     response_time_ms = new Date().getTime()-start_time;
