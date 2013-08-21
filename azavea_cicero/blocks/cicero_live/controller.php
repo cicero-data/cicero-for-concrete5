@@ -196,10 +196,10 @@ class CiceroLiveBlockController extends BlockController {
             $imageSpec = array(
                 "boundary_color"=>$_REQUEST['boundaryColor']?$_REQUEST['boundaryColor']:"#000000",
                 // Opacity specifications seem to result in 500 errors.
-                //"boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"0.8",
+                "boundary_opacity"=>$_REQUEST['boundaryOpacity']?$_REQUEST['boundaryOpacity']:"80",
                 "boundary_width"=>$_REQUEST['boundaryWidth']?$_REQUEST['boundaryWidth']:"3",
                 "fill_color"=>$_REQUEST['fillColor']?$_REQUEST['fillColor']:"#53A8C8",
-                //"fill_opacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"0.25",
+                "fill_opacity"=>$_REQUEST['fillOpacity']?$_REQUEST['fillOpacity']:"25",
                 "height"=>$_REQUEST['imgHeight']?$_REQUEST['imgHeight']:200, //change defaults here
                 "width"=>$_REQUEST['imgWidth']?$_REQUEST['imgWidth']:200, //change defaults here
                 "include_image_data"=>"true",
