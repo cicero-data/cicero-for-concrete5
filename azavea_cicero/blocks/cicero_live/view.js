@@ -667,11 +667,15 @@ $( function() {
             var nonlegislativeUrl = $('#get-nonlegislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             var newDistrictURL = $('#get-new-legislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             $.getJSON(newDistrictURL, function(newDistricts) {
-                appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts', location4326.y, location4326.x);
-                $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
-                $.getJSON(nonlegislativeUrl, function(nonLegDistricts) {
-                    appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts', location4326.y, location4326.x);
+                if(newDistricts.length > 0){
+                    appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts', location4326.y, location4326.x);
                     $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
+                }
+                $.getJSON(nonlegislativeUrl, function(nonLegDistricts) {
+                    if(nonLegDistricts.length > 0){
+                        appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts', location4326.y, location4326.x);
+                        $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
+                    }
                     stopWaiting();
                     response_time_ms = new Date().getTime()-start_time;
                     logAPICallSuccess(address, response_time_ms, opt_noninteraction);

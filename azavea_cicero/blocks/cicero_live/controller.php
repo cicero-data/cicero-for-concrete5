@@ -90,7 +90,6 @@ class CiceroLiveBlockController extends BlockController {
         }
         exit;
     }
-    ////////////////////// Not sure this needs to be new districts anymore
     public function action_get_new_legislative_districts() {
         //error_log("Getting new districts");
         $cicero = Loader::helper('cicero', 'azavea_cicero');
@@ -110,13 +109,9 @@ class CiceroLiveBlockController extends BlockController {
             $url = $cicero->url_base_rest . 'legislative_district?' . $queryString;
             $legislativeDistrictResponse = $cicero->get_response($url);
 
-            if($legislativeDistrictResponse->response->results->count->total == 0) {
-                error_log('No location found for the given address.');
-                print $js->encode(array('success'=>FALSE, 'message'=>'No districts found for the given location.'));
-            }
-
             $legislativeDistrictResult = $legislativeDistrictResponse->response->results->districts;
-            print $js->encode($legislativeDistrictResult);
+                //error_log($js->encode($legislativeDistrictResult));
+                print $js->encode($legislativeDistrictResult);
         } else {
             throw new Exception('Could not authenticate Cicero REST API user.');
         }
