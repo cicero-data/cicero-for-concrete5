@@ -158,63 +158,65 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
     </h3>
 
     
-    {if addresses[0].address_1 !== ''}
-        {var primary = addresses[0]}
-        <h4>Primary Address</h4>
+    {var primary = addresses[0]}
+    <h4>Primary Address</h4>
+    {if primary !== undefined}
         ${primary.address_1}<br />
-    {/if}
-    {if primary.address_2 != ''}
-        ${primary.address_2}<br />
-    {/if}
-    {if primary.address_3 != ''}
-        ${primary.address_3}<br />
-    {/if}
-    {if primary.state != ''}
-        {if primary.city != ''}
-            ${primary.city},
+        {if primary.address_2 != ''}
+            ${primary.address_2}<br />
         {/if}
-        ${primary.state}
-    {else}
-        {if primary.city != ''}
-            ${primary.city}&nbsp;&nbsp;
+        {if primary.address_3 != ''}
+            ${primary.address_3}<br />
         {/if}
-    {/if}
-    {if primary.postal_code != ''}
-        ${primary.postal_code|capitalize}
-    {/if}<br />
+        {if primary.state != ''}
+            {if primary.city != ''}
+                ${primary.city},
+            {/if}
+            ${primary.state}
+        {else}
+            {if primary.city != ''}
+                ${primary.city}&nbsp;&nbsp;
+            {/if}
+        {/if}
+        {if primary.postal_code != ''}
+            ${primary.postal_code|capitalize}
+        {/if}<br />
     
-    {if primary.phone_1 != ''}
-        {if primary.fax_1 != ''}
-            <div class = "half">
-                <h4 id="H1">Phone</h4> 
-                ${primary.phone_1}
-            </div>
-            
-            <div class="half">
-                <h4>Fax</h4>
+        {if primary.phone_1 != ''}
+            {if primary.fax_1 != ''}
+                <div class = "half">
+                    <h4 id="H1">Phone</h4> 
+                    ${primary.phone_1}
+                </div>
+                
+                <div class="half">
+                    <h4>Fax</h4>
+                    ${primary.fax_1}
+                </div>
+            {else}
+                <div>
+                    <h4 id="PrimaryPhone1">Phone</h4> 
+                    ${primary.phone_1}
+                </div>
+            {/if}
+        {elseif primary.fax_1 != ''}
+            <div>
+                <h4 id="fax">Fax</h4>
                 ${primary.fax_1}
             </div>
-        {else}
-            <div>
-                <h4 id="PrimaryPhone1">Phone</h4> 
-                ${primary.phone_1}
-            </div>
         {/if}
-    {elseif primary.fax_1 != ''}
-        <div>
-            <h4 id="fax">Fax</h4>
-            ${primary.fax_1}
-        </div>
+    {else}
+        <p>No address information found.</p>
     {/if}
     
-    {if email_addresses[0] != ''}
-        {var email1 = email_addresses[0]}
+    {var email1 = email_addresses[0]}
+    {if email1 !== undefined}
         <h4>Email</h4> 
         {var mailLink = '<' + 'a href="mailto:' + email1 + '" target="_blank"' + '>' + email1 + '<' + '/a>'}
         ${mailLink}
     {/if}
-    {if urls[0] != ''}
-        {var url1 = urls[0]}
+    {var url1 = urls[0]}
+    {if url1 !== undefined}
         <h4>Website:</h4>
         {eval}
             if (url1.length > 36) {
