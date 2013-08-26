@@ -43,12 +43,12 @@ endif;
 <link href="http://serverapi.arcgisonline.com/jsapi/arcgis/2.4/js/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css" >
 
 <?php
-error_log("Entering view function");
+//error_log("Entering view function");
 $get_officials=$this->action('get_elected_officials');
 $get_new_legislative_districts=$this->action('get_new_legislative_districts');
 $get_districts=$this->action('get_nonlegislative_districts');
 $get_maps=$this->action('get_maps');
-error_log("Get maps is: ".$get_maps);
+//error_log("Get maps is: ".$get_maps);
 $e=array_pop(explode('/',$_SERVER['REQUEST_URI']));
 if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
 	$get_officials = substr($get_officials,1);
