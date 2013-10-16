@@ -356,8 +356,8 @@ $( function() {
 			officials[0] = oldOfficials;
 		}
 		var currentOfficial = officials.shift();
-		thisType = currentOfficial.DistrictType.split('_')[0];
-		if (currentType == undefined || thisType !== currentType) {
+		thisType = currentOfficial.office.district.district_type.split('_')[0];
+		if (typeof currentType === "undefined" || thisType !== currentType) {
 			currentType = thisType;
 			var node = $('<h3 class="official-type-root h3 capitalize"><a href="#">' + currentType.toLowerCase() + '</a></h3>');
 			var currentHeader = $('<div class="officials-list" />');
@@ -374,14 +374,21 @@ $( function() {
 		} catch (error) {
 			showErrorDialog('Sorry', 'There\'s been an error. The system cannot display official/district information. [' + error + ']');
 		}
-		
+		var city = null;
+		var state = null;
+		if (currentOfficial.office.representing_city !== undefined){
+			city = currentOfficial.office.representing_city;
+		}
+		if (currentOfficial.office.representing_state !== undefined){
+			state = currentOfficial.office.representing_state;
+		}
 		officialNode.data('officialInfo', currentOfficial);
 		officialNode.data('mapRequest', {
-			districtID: currentOfficial.DistrictID,
-			city: currentOfficial.RepresentingCity,
-			state: currentOfficial.RepresentingState,
-			country: currentOfficial.Country,
-			districtType: currentOfficial.DistrictType,
+			ID: currentOfficial.office.district.id,
+			//city: city,
+			//state: state,
+			//country: currentOfficial.office.district.country,
+			districtType: currentOfficial.office.district.district_type,
 			imgHeight: map.height,
 			imgWidth: map.width
 		});
@@ -391,7 +398,7 @@ $( function() {
 		return appendOfficials(officials, root, header, currentType);
     };
 
-    var appendNonLegislativeDistricts = function(districts, root, headerText, fillColor) {
+    var appendNonLegislativeDistricts = function(districts, root, headerText, lat, lon, fillColor) {
         var header = $('<h3 class="official-type-root h3"><a href="#">'+ headerText +'</a></h3>');
         if(fillColor === undefined){
             fillColor = "#53A8C8";
@@ -414,11 +421,13 @@ $( function() {
 				var districtNode = $(html);
 				districtNode.data('districtInfo', this);
 				districtNode.data('mapRequest', {
-					districtID: this.DistrictID,
-					city: this.City,
-					state: this.State,
-					country: this.Country,
-					districtType: this.DistrictType,
+					ID: this.id,
+					//city: this.city,
+					//state: this.state,
+					//country: this.country,
+					//lat: lat,
+					//lon: lon,
+					districtType: this.district_type,
 					imgHeight: map.height,
 					imgWidth: map.width,
                     fillColor: fillColor
@@ -506,10 +515,11 @@ $( function() {
 	var getMapImage = function(node) {
 		$.post($('#get-maps').attr('href'), $(node).data('mapRequest'), function(result) {
 			try {
-				mapInfo = $.parseJSON(result);
-				var mapExtent = mapInfo.MapExtent;
-				mapExtent = new esri.geometry.Extent(mapExtent.MinXMeters, mapExtent.MinYMeters, mapExtent.MaxXMeters, mapExtent.MaxYMeters, srid);
-				var mapImage = new esri.layers.MapImage({extent: mapExtent, height: map.height, width: map.width, href: mapInfo.MapUrl});
+				var res = result;
+				mapInfo = $.parseJSON(result)[0];
+				var mapExtent = mapInfo.extent;
+				mapExtent = new esri.geometry.Extent(mapExtent.x_min, mapExtent.y_min, mapExtent.x_max, mapExtent.y_max, srid);
+				var mapImage = new esri.layers.MapImage({extent: mapExtent, height: map.height, width: map.width, href: mapInfo.url});
 				$(node).data('mapImage', mapImage);
 				$(node).click();
 			} catch (error) {
@@ -526,7 +536,7 @@ $( function() {
 			try {
 				mapInfo = $.parseJSON(result);
 				var mapExtent = mapInfo.MapExtent;
-				mapExtent = new esri.geometry.Extent(mapExtent.MinXMeters, mapExtent.MinYMeters, mapExtent.MaxXMeters, mapExtent.MaxYMeters, srid);
+				mapExtent = new esri.geometry.Extent(mapExtent.x_min, mapExtent.y_min, mapExtent.x_max, mapExtent.y_max, srid);
 				var mapImage = new esri.layers.MapImage({extent: mapExtent, height: map.height, width: map.width, href: mapInfo.MapUrl});
 				$(node).data('currentDistImage', mapImage);
 				$(node).click();
@@ -570,11 +580,11 @@ $( function() {
     };
 	
 	var makeSortString = function(a) {
-		var dt = $.inArray(a.DistrictType.toLowerCase(), backwardsType);//will not work with > 10 type elements
-		(a.isAtLarge !== true && a.DistrictID != 'AT LARGE') ? aL = 1 : aL = 2; //order at-large last
-		a.Title !== undefined ? t = a.Title.toLowerCase() : t = 'zzzzz';
-		a.LastName !== undefined ? ln = a.LastName.toLowerCase() : ln = 'zzzzz';
-		a.FirstName !== undefined ? fn = a.FirstName.toLowerCase() : fn = 'zzzzz';
+		var dt = $.inArray(a.office.district.district_type.toLowerCase(), backwardsType);//will not work with > 10 type elements
+		(a.office.district.district_type != 'AT LARGE') ? aL = 1 : aL = 2; //order at-large last
+		a.title !== undefined ? t = a.title.toLowerCase() : t = 'zzzzz';
+		a.last_name !== undefined ? ln = a.last_name.toLowerCase() : ln = 'zzzzz';
+		a.first_name !== undefined ? fn = a.first_name.toLowerCase() : fn = 'zzzzz';
 		if( t == 'council member' ){
 			t = '0' ;//this will come before any other title
 		}
@@ -637,7 +647,8 @@ $( function() {
 				return false;
 			}
             
-            officials = data.ElectedOfficialInfo
+            //officials = data.ElectedOfficialInfo
+	    officials = data;
             if(officials === undefined)
             {
                 if(data.message === undefined){
@@ -656,11 +667,15 @@ $( function() {
             var nonlegislativeUrl = $('#get-nonlegislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             var newDistrictURL = $('#get-new-legislative-districts').attr('href') + '&latitude=' + location4326.y + '&longitude=' + location4326.x;
             $.getJSON(newDistrictURL, function(newDistricts) {
-                appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts');
-                $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
-                $.getJSON(nonlegislativeUrl, function(nonLegDistricts) {
-                    appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts');
+                if(newDistricts.length > 0){
+                    appendNonLegislativeDistricts(newDistricts, $('#officials-accordion'), 'New Legislative Districts', location4326.y, location4326.x);
                     $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
+                }
+                $.getJSON(nonlegislativeUrl, function(nonLegDistricts) {
+                    if(nonLegDistricts.length > 0){
+                        appendNonLegislativeDistricts(nonLegDistricts, $('#officials-accordion'), 'Non-Legislative Districts', location4326.y, location4326.x);
+                        $('#officials-accordion').accordion({ autoHeight:false, clearStyle:true });
+                    }
                     stopWaiting();
                     response_time_ms = new Date().getTime()-start_time;
                     logAPICallSuccess(address, response_time_ms, opt_noninteraction);
