@@ -85,10 +85,10 @@ $( function() {
             bingMapsKey: bingKey
         });
         geocoderNA = new esri.tasks.Locator(
-            "http://tasks.arcgisonline.com/ArcGIS/rest/services/Locators/TA_Address_NA_10/GeocodeServer"
+            "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
         );
         geocoderEU = new esri.tasks.Locator(
-            "http://tasks.arcgisonline.com/ArcGIS/rest/services/Locators/TA_Address_EU/GeocodeServer"
+            "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
         );
     };
 
@@ -688,11 +688,10 @@ $( function() {
 
     var showGeocodingResults = function(candidates) {
         var candidate;
+        // Filter out candidates that we don't want to consider.
+        // e.g. results for a postal code or a city.
         candidates = $.grep(candidates, function(element, index) {
-            if (element.calculationMethod && element.calculationMethod === 'Rooftop') {
-                return true;
-            }
-            if (element.attributes && element.attributes.Loc_name.indexOf('Streets') < 0) {
+            if (element.attributes && element.attributes.Loc_name.indexOf('Address') < 0) {
                 return false;
             }
             return true;
