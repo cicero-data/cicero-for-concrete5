@@ -5,10 +5,7 @@ This package contains the Concrete5 blocks for [Cicero Live](http://www.azavea.c
 
 Each block takes advantage of Azavea's [Cicero API](http://www.azavea.com/cicero/) for political data and elected-official lookups by street address.
 
-Important Note!
---------------
-
-The Cicero Live block is still coded to use the SOAP version of the Cicero API. (Cicero Elections uses the RESTful API.). Azavea is discontinuing access to the SOAP API in April of 2013. An update to this block should arrive in the next few months of 2012. If you install this block, remember that you WILL need to install the future update to use Cicero Live after April 2013. 
+Both blocks have now been updated to use the new ReST API!
 
 Installation
 ------------
