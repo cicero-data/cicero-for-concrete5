@@ -43,10 +43,12 @@ endif;
 <link href="http://serverapi.arcgisonline.com/jsapi/arcgis/2.4/js/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css" >
 
 <?php
+//error_log("Entering view function");
 $get_officials=$this->action('get_elected_officials');
 $get_new_legislative_districts=$this->action('get_new_legislative_districts');
 $get_districts=$this->action('get_nonlegislative_districts');
 $get_maps=$this->action('get_maps');
+//error_log("Get maps is: ".$get_maps);
 $e=array_pop(explode('/',$_SERVER['REQUEST_URI']));
 if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
 	$get_officials = substr($get_officials,1);
@@ -106,13 +108,13 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
 <!-- HTML templates for use in the javascript templating system -->
 <textarea cols="0" rows="0" id="official-full-template" style="display:none;">
     {eval} 
-        if (DistrictType.indexOf('local') >= 0) {
+        if (office.district.district_type.indexOf('local') >= 0) {
             catBox = '<' + 'div class="catBox" id="catBoxLocal">Local<' + '/div>';
         }
-        else if (DistrictType.indexOf('state') >= 0) {
+        else if (office.district.district_type.indexOf('state') >= 0) {
             catBox = '<' + 'div class="catBox" id="catBoxState">State<' + '/div>';
         }
-        else if (DistrictType.indexOf('national') >= 0) {
+        else if (office.district.district_type.indexOf('national') >= 0) {
             catBox = '<' + 'div class="catBox" id="catBoxNational">National<' + '/div>';
         }
         else {
@@ -123,101 +125,107 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
     ${catBox}
 
     <h1>
-    {if isNaN(DistrictID)}
-        ${DistrictID}
+    {if isNaN(office.district.district_id)}
+        ${office.district.district_id}
     {else}
-        District ${DistrictID}
+        District ${office.district.district_id}
     {/if}
     </h1>
     
-    {if RepresentingState != ''}
-        {if RepresentingCity != ''}
-        <h2>${RepresentingCity}, ${RepresentingState}, ${Country}</h2>
+    {if office.representing_state != ''}
+        {if office.representing_city != ''}
+        <h2>${office.representing_city}, ${office.representing_state}, ${office.district.country}</h2>
         {else}
-        <h2>${RepresentingState}, ${Country}</h2>
+        <h2>${office.representing_state}, ${office.district.country}</h2>
         {/if}
     {else}
-        <h2>${Country}</h2>
+        <h2>${office.district.country}</h2>
     {/if}
     
     <h3>
-    {if Title != ''}
-        ${Title}
+    {if office.title !== ''}
+        ${office.title}
     {/if}
-    {if defined('FirstName')}
-        ${FirstName}
-    {if defined('LastName')}
+    {if defined('first_name')}
+        ${first_name}
+    {if defined('last_name')}
     {/if}
-        ${LastName}
+        ${last_name}
     {/if}
-    {if Party != ''}
-        (${Party})
+    {if party != ''}
+        (${party})
     {/if}
     </h3>
 
-    {if PrimaryAddress1 != ''}
-        <h4>Primary Address</h4>
-        ${PrimaryAddress1}<br />
-    {/if}
-    {if PrimaryAddress2 != ''}
-        ${PrimaryAddress2}<br />
-    {/if}
-    {if PrimaryAddress3 != ''}
-        ${PrimaryAddress3}<br />
-    {/if}
-    {if PrimaryState != ''}
-        {if PrimaryCity != ''}
-            ${PrimaryCity},
-        {/if}
-        ${PrimaryState}
-    {else}
-        {if PrimaryCity != ''}
-            ${PrimaryCity}&nbsp;&nbsp;
-        {/if}
-    {/if}
-    {if PrimaryPostalCode != ''}
-        ${PrimaryPostalCode|capitalize}
-    {/if}<br />
     
-    {if PrimaryPhone1 != ''}
-        {if PrimaryFax1 != ''}
-            <div class = "half">
-                <h4 id="H1">Phone</h4> 
-                ${PrimaryPhone1}
-            </div>
-            
-            <div class="half">
-                <h4>Fax</h4>
-                ${PrimaryFax1}
-            </div>
+    {var primary = addresses[0]}
+    <h4>Primary Address</h4>
+    {if primary !== undefined}
+        ${primary.address_1}<br />
+        {if primary.address_2 != ''}
+            ${primary.address_2}<br />
+        {/if}
+        {if primary.address_3 != ''}
+            ${primary.address_3}<br />
+        {/if}
+        {if primary.state != ''}
+            {if primary.city != ''}
+                ${primary.city},
+            {/if}
+            ${primary.state}
         {else}
+            {if primary.city != ''}
+                ${primary.city}&nbsp;&nbsp;
+            {/if}
+        {/if}
+        {if primary.postal_code != ''}
+            ${primary.postal_code|capitalize}
+        {/if}<br />
+    
+        {if primary.phone_1 != ''}
+            {if primary.fax_1 != ''}
+                <div class = "half">
+                    <h4 id="H1">Phone</h4> 
+                    ${primary.phone_1}
+                </div>
+                
+                <div class="half">
+                    <h4>Fax</h4>
+                    ${primary.fax_1}
+                </div>
+            {else}
+                <div>
+                    <h4 id="PrimaryPhone1">Phone</h4> 
+                    ${primary.phone_1}
+                </div>
+            {/if}
+        {elseif primary.fax_1 != ''}
             <div>
-                <h4 id="PrimaryPhone1">Phone</h4> 
-                ${PrimaryPhone1}
+                <h4 id="fax">Fax</h4>
+                ${primary.fax_1}
             </div>
         {/if}
-    {elseif PrimaryFax1 != ''}
-        <div>
-            <h4 id="fax">Fax</h4>
-            ${PrimaryFax1}
-        </div>
+    {else}
+        <p>No address information found.</p>
     {/if}
     
-    {if EMail1 != ''}
+    {var email1 = email_addresses[0]}
+    {if email1 !== undefined}
         <h4>Email</h4> 
-        {var mailLink = '<' + 'a href="mailto:' + EMail1 + '" target="_blank"' + '>' + EMail1 + '<' + '/a>'}
+        {var mailLink = '<' + 'a href="mailto:' + email1 + '" target="_blank"' + '>' + email1 + '<' + '/a>'}
         ${mailLink}
     {/if}
-    {if 'Url1' != ''}
+    {var url1 = urls[0]}
+    {if url1 !== undefined}
         <h4>Website:</h4>
         {eval}
-            if (Url1.length > 36) {
-                urlText = Url1.substring(0, 36) + '...';
+            if (url1.length > 36) {
+                urlText = url1.substring(0, 36) + '...';
             }
             else {
-                urlText = Url1;
+                urlText = url1;
             }
-            urlLink = 'a href="' + Url1 + '" target="_blank"';
+            urlLink = 'a href="' + url1 + '" target="_blank"';
             
             urlTotal = '<' + urlLink + '>' + urlText + '<' + '/a>';
         {/eval}
@@ -228,81 +236,81 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
   
 <textarea cols="0" rows="0" id="nonlegislative-district-template" style="display:none">	
     &lt;div class="catBox" id="catBoxNonLeg"&gt;Non-Legislative&lt;/div&gt;	
-    &lt;h1 class="capitalize"&gt;${DistrictType.replace(/_/g, " ")}
-    {if DistrictSubType != ''}
-        (${DistrictSubType.replace(/_/g, " ")})
+    &lt;h1 class="capitalize"&gt;${district_type.replace(/_/g, " ")}
+    {if subtype != ''}
+        (${subtype.replace(/_/g, " ")})
     {/if}
     &lt;/h1&gt;
     &lt;h2&gt;
-        {if isNaN(DistrictID)}
-             &lt;span class="capitalize"&gt;${DistrictID.toLowerCase().replace(/sd/g,"S.D.")}&lt;/span&gt;
+        {if isNaN(district_id)}
+             &lt;span class="capitalize"&gt;${district_id.toLowerCase().replace(/sd/g,"S.D.")}&lt;/span&gt;
         {else}
             {eval}
-            if (DistrictSubType == "HUC2") {
+            if (subtype == "HUC2") {
                 distName = "Hydrologic Region";
                 }
-            else if (DistrictSubType == "HUC4") {
+            else if (subtype == "HUC4") {
                 distName = "Hydrologic Subregion";
                 }					
-            else if (DistrictSubType == "HUC6") {
+            else if (subtype == "HUC6") {
                 distName = "Basin";
                 }
-            else if (DistrictSubType == "HUC8") {
+            else if (subtype == "HUC8") {
                 distName = "Subbasin";
-                LA = Label.split( /[,.]|\bbasin\b/ig );
-                Label = LA[0];
+                LA = label.split( /[,.]|\bbasin\b/ig );
+                label = LA[0];
                 }			
-            else if (DistrictSubType == "HUC10") {
+            else if (subtype == "HUC10") {
                 distName = "Watershed";
                 }	
-            else if (DistrictSubType == "HUC12") {
+            else if (subtype == "HUC12") {
                 distName = "Subwatershed";
                 }
-            else if (DistrictType == "COUNTY") {
+            else if (district_type == "COUNTY") {
                 distName = "FIPS Code";
                 }
-            else if (DistrictType == "POLICE" &amp;&amp; Label == "PSA"){
+            else if (district_type == "POLICE" &amp;&amp; label == "PSA"){
                 distName = "Police Service Area";
-                if( Math.ceil( DistrictID ) !== NaN ){
-                    DistrictID = Math.ceil( DistrictID );
+                if( Math.ceil( district_id ) !== NaN ){
+                    district_id = Math.ceil( district_id );
                     }
                 }
-            else if ( DistrictType == "POLICE" &amp;&amp; ( City == "NEW YORK" || ( City == "PORTLAND" &amp;&amp; State == "OR" ) || City == "BOSTON" || City == "SEATTLE" || City == "BALTIMORE" || City == "DETROIT" ) ){
+            else if ( district_type == "POLICE" &amp;&amp; ( city == "NEW YORK" || ( city == "PORTLAND" &amp;&amp; state == "OR" ) || city == "BOSTON" || city == "SEATTLE" || city == "BALTIMORE" || city == "DETROIT" ) ){
                 distName = "Precinct";
                 }
             else {
                 distName = "District";
                 }
             {/eval}
-            {if DistrictType == 'watershed'}
-                ${Label} ${distName}
-            {elseif DistrictType == 'census'}
-                ${Label} 
+            {if district_type == 'watershed'}
+                ${label} ${distName}
+            {elseif district_type == 'census'}
+                ${label} 
             {else}
-                ${distName} ${DistrictID}
+                ${distName} ${district_id}
             {/if}
         {/if}
-        {if City != ''}
-            ${City}
-            {if defined('State') &amp;&amp; State != ''},{/if}
+        {if city != ''}
+            ${city}
+            {if defined('state') &amp;&amp; state != ''},{/if}
         {/if}
-        {if State != ''} ${State} {/if}
-        {if Country != ''} ${Country} {/if}
+        {if state != ''} ${state} {/if}
+        {if country != ''} ${country} {/if}
     &lt;/h2&gt;
 
-    &lt;h4&gt;${Label}&lt;/h4&gt;
+    &lt;h4&gt;${label}&lt;/h4&gt;
 </textarea>      
 
 <textarea cols="0" rows="0" id="official-accordion-template" style="display:none;">
-    <div class="elected-official" {if DistrictID.length > 27} title="${DistrictID}" {/if}>
-    {if isNaN(DistrictID)}
+    <div class="elected-official" {if office.district.district_id.length > 27} title="${office.district.district_id}" {/if}>
+    {if isNaN(office.district.district_id)}
         {eval}
-            if( DistrictID == "AT LARGE" ){
+            if( office.district.district_id == "AT LARGE" ){
                 repDistrict = "At-Large";
-            } else if( DistrictID.split(" ")[0].length > 2 || DistrictID.split(" ")[0] == "FT" || DistrictID.split(" ")[0] == "ST" || DistrictID.split(" ")[0] == "MT" ) { /*do not make state abbrevs lowercase - make exceptions for FT (WORTH), ST (LOUIS)*/
-                repDistrict = DistrictID.toLowerCase();
+            } else if( office.district.district_id.split(" ")[0].length > 2 || office.district.district_id.split(" ")[0] == "FT" || office.district.district_id.split(" ")[0] == "ST" || office.district.district_id.split(" ")[0] == "MT" ) { /*do not make state abbrevs lowercase - make exceptions for FT (WORTH), ST (LOUIS)*/
+                repDistrict = office.district.district_id.toLowerCase();
             } else {
-                repDistrict = DistrictID;
+                repDistrict = office.district.district_id;
             }
             if (repDistrict.length > 27) {
                 repDistrict = repDistrict.substring(0, 24) + '...';
@@ -310,25 +318,22 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
         {/eval}
         <span class="capitalize">${repDistrict}</span>
     {else}
-        <span class="capitalize">District ${DistrictID}</span>
+        <span class="capitalize">District ${office.district.district_id}</span>
     {/if}
     
     {eval}
-        repField = '';
+        if (office.title !== undefined) {
+            repField = office.title + " ";
+        }
     {/eval}
-    {if defined('Title')}
+    {if defined('first_name')}
         {eval}
-            repField = Title + " ";
+            repField = repField + first_name + " ";
         {/eval}
     {/if}
-    {if defined('FirstName')}
+    {if defined('last_name')}
         {eval}
-            repField = repField + FirstName + " ";
-        {/eval}
-    {/if}
-    {if defined('LastName')}
-        {eval}
-            repField = repField + LastName;
+            repField = repField + last_name;
         {/eval}
     {/if}
     {eval}
@@ -342,67 +347,67 @@ if($e==''||strpos($e,'.')!==false){//relative ref okay but get rid of slashes
    
 <textarea cols="0" rows="0" id="nonlegislative-district-picker-template" style="display:none">
     <div class="picker-node">
-        {if isNaN(DistrictID) && DistrictType != 'WATERSHED' && DistrictID.length > 1}
-            <span class="capitalize">${DistrictID.toLowerCase().replace(/sd/g,"S.D.")}</span>
-        {elseif DistrictType == "POLICE" && Label == "PSA"}
+        {if isNaN(district_id) && district_type != 'WATERSHED' && district_id.length > 1}
+            <span class="capitalize">${district_id.toLowerCase().replace(/sd/g,"S.D.")}</span>
+        {elseif district_type == "POLICE" && label == "PSA"}
             {eval}
-                displayDistrictID = Math.ceil(DistrictID)
+                displaydistrict_id = Math.ceil(district_id)
             {/eval}
-            <span class="capitalize">Police Service Area ${displayDistrictID}</span>
+            <span class="capitalize">Police Service Area ${displaydistrict_id}</span>
         {else}
             {eval}
-                if (DistrictSubType == "COUNTY") {
+                if (subtype == "COUNTY") {
                     distName = "FIPS Code";
-                } else if (DistrictType == "SCHOOL"){
+                } else if (district_type == "SCHOOL"){
                     distName = "School District";
-                } else if ( DistrictType == "POLICE" && ( City == "NEW YORK" || ( City == "PORTLAND" && State == "OR" ) || City == "BOSTON" || City == "SEATTLE" || City == "BALTIMORE" || City == "DETROIT" ) ){
+                } else if ( district_type == "POLICE" && ( city == "NEW YORK" || ( city == "PORTLAND" && state == "OR" ) || city == "BOSTON" || city == "SEATTLE" || city == "BALTIMORE" || city == "DETROIT" ) ){
                     distName = "Precinct";
                 } else {
                     distName = "District";
                 }
-                DistrictType = DistrictType.toLowerCase();
+                district_type = district_type.toLowerCase();
             {/eval}
-                {if DistrictType == 'watershed'}
+                {if district_type == 'watershed'}
                     {eval}
-                        if (DistrictSubType == "HUC2") {
-                            LA = Label.split( /[,.]|\bregion\b/ig );
-                            Label = LA[0];
+                        if (subtype == "HUC2") {
+                            LA = label.split( /[,.]|\bregion\b/ig );
+                            label = LA[0];
                             distName = "Hydrologic Region";
-                        } else if (DistrictSubType == "HUC4") {
+                        } else if (subtype == "HUC4") {
                             distName = "Hydrologic Subregion";
-                        } else if (DistrictSubType == "HUC6") {
+                        } else if (subtype == "HUC6") {
                             distName = "Basin";
-                        } else if (DistrictSubType == "HUC8") {
+                        } else if (subtype == "HUC8") {
                             distName = "Subbasin";
-                            LA = Label.split( /[,.]|\bbasin\b/ig );
-                            Label = LA[0];
-                        } else if (DistrictSubType == "HUC12") {
+                            LA = label.split( /[,.]|\bbasin\b/ig );
+                            label = LA[0];
+                        } else if (subtype == "HUC12") {
                             distName = "Subwatershed";
-                        } else if (DistrictSubType == "WSC_MDA") {
+                        } else if (subtype == "WSC_MDA") {
                             distName = "";
-                        } else if (DistrictSubType == "WSC_SDA") {
+                        } else if (subtype == "WSC_SDA") {
                             distName = "Sub-Drainage Area";
-                        } else if (DistrictSubType == "WSC_SSDA") {
+                        } else if (subtype == "WSC_SSDA") {
                             distName = "Sub-Sub-Drainage Area";
                         } else {
                             distName = "Watershed";
                         }
                     {/eval}
-                    ${Label} ${distName}
-                {elseif DistrictType == 'national_lower_2010'}
-                    Congressional District ${State}-${DistrictID}
-                {elseif DistrictType == 'census' && Country == 'CA'}
-                    {if DistrictSubType == 'BLOCK_GROUP'}
-                        Census Dissemination Area ${DistrictID}
-                    {elseif DistrictSubType == 'TRACT'}
-                        Census Tract ${DistrictID}
-                    {elseif DistrictSubType == 'URBAN_AREA'}
-                        ${Label} Census Metropolitan Area
+                    ${label} ${distName}
+                {elseif district_type == 'national_lower_2010'}
+                    Congressional District ${state}-${district_id}
+                {elseif district_type == 'census' && country == 'CA'}
+                    {if subtype == 'BLOCK_GROUP'}
+                        Census Dissemination Area ${district_id}
+                    {elseif subtype == 'TRACT'}
+                        Census Tract ${district_id}
+                    {elseif subtype == 'URBAN_AREA'}
+                        ${label} Census Metropolitan Area
                     {/if}
-                {elseif defined('Label') && Label != '' && $.inArray(DistrictType, ['county', 'census']) !== -1}
-                    ${Label}
+                {elseif defined('label') && label != '' && $.inArray(district_type, ['county', 'census']) !== -1}
+                    ${label}
                 {else}
-                    <span class="capitalize">${DistrictType.replace(/_(2010)?/g, " ")}</span> ${distName} ${DistrictID}
+                    <span class="capitalize">${district_type.replace(/_(2010)?/g, " ")}</span> ${distName} ${district_id}
                 {/if}
         {/if}
     </div>
