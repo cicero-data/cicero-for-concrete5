@@ -23,5 +23,5 @@ Support
 
 Bug reports and feature requests can be reported to the [issue tracker](https://github.com/azavea/cicero-for-concrete5/issues).
 
-Additionally, you may contact [Andrew Thompson](mailto:athompson@azavea.com), Azavea's Community Evangelist, and he will do his best to help you ;-).
+Software distributed under the License is distributed on an "as-is" basis. See the License for specific language governing permissions and limitations.
 
